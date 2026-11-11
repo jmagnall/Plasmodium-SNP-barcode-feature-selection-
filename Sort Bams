@@ -1,0 +1,26 @@
+#The following was submitted as a job to the University of Birmingham BlueBEAR remote computing environment:
+
+#!/bin/bash
+#SBATCH --account=quickj-plasmodium-knowlesi-barcode
+#SBATCH --qos=bbdefault
+#SBATCH --time=10:00:00
+
+#Clear any previous modules, maintain regular software versions, load bwa  
+module purge; module load bluebear; module load bear-apps/2023a; module load SAMtools/1.21-GCC-12.3.0
+
+#Change to project directory containing accession and SRR directories 
+cd /rds/projects/q/quickj-plasmodium-knowlesi-barcode
+
+#Create path to Aligned_reads folder as variable
+Aligned_reads='/rds/projects/q/quickj-plasmodium-knowlesi-barcode/Aligned_reads'
+
+#Create variable with path to sorted reads directory
+Sorted_reads='/rds/projects/q/quickj-plasmodium-knowlesi-barcode/Sorted_reads'
+
+#Convert each samples aligned SAM file into sorted BAM files for variant calling
+for file in Accessions/*; do
+	while read -r srr; do
+        	samtools view -b "${Aligned_reads}/${srr}.paired.sam" | \
+	        samtools sort -o "${Sorted_reads}/${srr}_sorted.bam"
+    	done < "$file"
+done
