@@ -1,0 +1,21 @@
+#The following was submitted as a job to the University of Birmingham BlueBEAR remote computing environment: 
+
+#!/bin/bash
+#initialise resources
+#SBATCH --account=quickj-plasmodium-knowlesi-barcode
+#SBATCH --qos=bbdefault
+#SBATCH --time=10:00:00
+
+#Clear any previous modules, maintain regular software versions 
+module purge; module load bluebear
+
+#Load correct BlueBear module and toolkit version 
+module load bear-apps/2023a; module load SRA-Toolkit/3.0.10-gompi-2023a 
+
+#Prefetch and download fastq files for forward and reverse strands, the 'Accessions' directory contains text files with lists of SRR accessions
+for file in Accessions/*; do
+    while read -r srr; do
+        prefetch "$srr" </dev/null
+        fasterq-dump --split-files --threads 4 "$srr" -O SRRs </dev/null
+    done < "$file"
+done
