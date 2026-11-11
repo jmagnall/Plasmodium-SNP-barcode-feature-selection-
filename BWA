@@ -1,0 +1,40 @@
+#The following was submitted as a job to the University of Birmingham BlueBEAR remote computing environment:
+
+#!/bin/bash 
+#SBATCH --account=quickj-plasmodium-knowlesi-barcode
+#SBATCH --qos=bbdefault
+#SBATCH --cpus-per-task=8
+#SBATCH --time=24:00:00
+
+#Clear any previous modules, maintain regular software versions, load bwa  
+module purge; module load bluebear; module load bear-apps/2023a; module load BWA/0.7.17-GCCcore-12.3.0; module load SAMtools/1.21-GCC-12.3.0
+
+#Change to project directory containing accession and SRR directories 
+cd /rds/projects/q/quickj-plasmodium-knowlesi-barcode
+
+#Set reference sequence as variable
+Ref='/rds/projects/q/quickj-plasmodium-knowlesi-barcode/Data/PK_reference.fasta'
+
+#Create index of reference sequence 
+bwa index ${Ref}
+
+#Create path to Aligned_reads folder as variable
+Aligned_reads='/rds/projects/q/quickj-plasmodium-knowlesi-barcode/Aligned_reads'
+
+#Create dictionary to store read group info for each run
+declare -A rg_dict_1
+
+#Create dictionary of run names (SRRs) and corresponding read group info
+while IFS=$'\t' read -r run rg; do
+    rg_dict_1["$run"]="$rg"
+done < Read_groups/merged_rgs_1.tsv
+
+#For each key in the dictionary, run bwa mem
+for key in "${!rg_dict_1[@]}"; do
+	bwa mem \
+        -R "${rg_dict_1[$key]}" \
+        ${Ref} \
+        "SRRs_filtered/${key}_1_fp.fastq" \
+        "SRRs_filtered/${key}_2_fp.fastq" \
+    	> "${Aligned_reads}/${key}.paired.sam" 
+done
