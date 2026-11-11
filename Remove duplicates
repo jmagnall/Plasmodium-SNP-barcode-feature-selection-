@@ -1,0 +1,27 @@
+#The following was submitted as a job to the University of Birmingham BlueBEAR remote computing environment:
+
+#!/bin/bash
+#SBATCH --account=quickj-plasmodium-knowlesi-barcode
+#SBATCH --qos=bbdefault
+#SBATCH --time=20:00:00
+
+#Clear any previous modules, maintain regular software versions, load bwa  
+module purge; module load bluebear; module load bear-apps/2022b; module load GATK/4.4.0.0-GCCcore-12.2.0-Java-17
+
+#Change to project home directory 
+cd /rds/projects/q/quickj-plasmodium-knowlesi-barcode
+
+#Save path to sorted reads as variable 
+Sorted_reads='/rds/projects/q/quickj-plasmodium-knowlesi-barcode/Sorted_reads'
+
+#Save path to deduplicated reads as variable
+Dedup='/rds/projects/q/quickj-plasmodium-knowlesi-barcode/Aligned_reads_dedup'
+
+#Mark duplicates in all paired sam files. 
+for file in Accessions/*; do
+    while read -r srr; do
+        gatk MarkDuplicatesSpark \
+            -I "${Sorted_reads}/${srr}_sorted.bam" \
+            -O "${Dedup}/${srr}_dedup.bam"
+    done < "$file"
+done
