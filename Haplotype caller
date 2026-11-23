@@ -1,0 +1,29 @@
+#The following was submitted as a job to the University of Birmingham BlueBEAR remote computing environment:
+
+#!/bin/bash 
+#SBATCH --account=quickj-plasmodium-knowlesi-barcode
+#SBATCH --qos=bbdefault
+#SBATCH --time=20:00:00
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=16G
+#SBATCH --array=1-100  # ADD THIS to run as job array
+
+#Clear any previous modules, maintain regular software versions, load GATK  
+module purge; module load bluebear; module load bear-apps/2022b; module load GATK/4.4.0.0-GCCcore-12.2.0-Java-17
+
+cd /rds/projects/q/quickj-plasmodium-knowlesi-barcode
+
+# Get the BAM file for this array task
+BAM_FILE=$(ls -1 Aligned_reads_dedup/*_sorted_dedup.bam | sed -n "${SLURM_ARRAY_TASK_ID}p")
+
+# Extract sample name
+SAMPLE_NAME=$(basename "$BAM_FILE" _sorted_dedup.bam)
+
+# Run HaplotypeCaller in GVCF mode
+gatk --java-options "-Xmx14G" HaplotypeCaller \
+  -R Data/PK_reference.fasta \
+  -I "$BAM_FILE" \
+  -O Pk_vcfs/${SAMPLE_NAME}.g.vcf.gz \
+  --sample-ploidy 1 \
+  -ERC GVCF 
+
