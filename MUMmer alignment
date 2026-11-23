@@ -1,0 +1,19 @@
+#The following was submitted as a job to the University of Birmingham BlueBEAR remote computing environment:
+
+#!/bin/bash
+#SBATCH --account=quickj-plasmodium-knowlesi-barcode
+#SBATCH --qos=bbdefault
+#SBATCH --time=12:00:00
+
+#Clear any previous modules, maintain regular software versions, load MUMmer
+module purge; module load bluebear; module load bear-apps/2022a; module load MUMmer/4.0.0rc1-GCCcore-11.3.0
+
+#Change to directory containing reference sequences
+cd /rds/projects/q/quickj-plasmodium-knowlesi-barcode/Data
+
+#Run nucmer querying pv reference sequence against pk
+
+nucmer \
+  --prefix=PK_vs_PV \
+  PK_reference.fasta \
+  PV_reference.fasta
