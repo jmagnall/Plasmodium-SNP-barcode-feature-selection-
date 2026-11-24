@@ -1,0 +1,20 @@
+import vcfpy
+
+reader = vcfpy.Reader.from_path("Pv_mid_bi.vcf.gz")
+
+samples = reader.header.samples.names
+
+types = {sample: {} for sample in samples}
+
+for record in reader:
+    variant_id = f"{record.CHROM} {record.POS}"
+    for call in record.calls:
+        gt = call.data['GT']
+        types[call.sample][variant_id] = gt
+
+import pandas as pd
+df = pd.DataFrame.from_dict(types, orient='index')
+df['Species'] = 'Pv'
+df = df.reset_index().rename(columns={'index': 'Sample'})
+
+df.to_csv('Pv_loc_table.csv', index=False)
