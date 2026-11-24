@@ -1,0 +1,29 @@
+#The following was submitted as a job to the University of Birmingham BlueBEAR remote computing environment:
+
+#Filter the PK cohort VCF with hard thresholds 
+
+#!/bin/bash
+#SBATCH --account=quickj-plasmodium-knowlesi-barcode
+#SBATCH --qos=bbdefault
+#SBATCH --time=20:00:00
+
+#Clear any previous modules, maintain regular software versions, load bwa  
+module purge; module load bluebear; module load bear-apps/2022b;  module load BCFtools/1.17-GCC-12.2.0
+
+#Change to project home directory 
+cd /rds/projects/q/quickj-plasmodium-knowlesi-barcode
+
+# Filter using bcftools (avoids JEXL parsing issues)
+bcftools filter \
+	-i 'QD>1 && FS<50 && MQ>45 && MQRankSum>-10 && ReadPosRankSum>-6.0' \
+	Pk_combin/Pk_exc_snps.vcf.gz \
+	-o Pk_combin/Pk_filt_snps.vcf.gz
+
+bcftools index -t Pk_combin/Pk_filt_snps.vcf.gz
+
+#Filter according to MAF
+bcftools view --include 'MAF[0]<0.05' Pk_combin/Pk_filt_snps.vcf.gz -o Pk_combin/Pk_fix_snps.vcf.gz
+
+bcftools index -t Pk_combin/Pk_fix_snps.vcf.gz
+
+#Check sample and variant numbers afterwards
