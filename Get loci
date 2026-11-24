@@ -1,0 +1,18 @@
+#The following was submitted as a job to the University of Birmingham BlueBEAR remote computing environment:
+
+#Subset cohort VCFs to sites from snps in the MUMmer alignment 
+#!/bin/bash 
+#SBATCH --account=quickj-plasmodium-knowlesi-barcode
+#SBATCH --qos=bbdefault
+#SBATCH --cpus-per-task=8
+#SBATCH --time=10:00:00
+
+module purge; module load bluebear
+module load bear-apps/2024a
+module load BCFtools/1.23.1-GCC-13.3.0
+
+cd /rds/projects/q/quickj-plasmodium-knowlesi-barcode
+
+bcftools view --R Vcf_info/Pk_loci.bed -Oz -o Pk_combin/Pk_snps_disc.vcf.gz Pk_combin/Pk_cohort_variants.vcf.gz
+
+bcftools view -R Vcf_info/Pv_loci.bed -Oz -o Pv_vcfs/Pv_snps_disc.vcf.gz Pv_vcfs/Pv_tot.vcf.gz
